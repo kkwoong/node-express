@@ -1,18 +1,15 @@
 {
-  "name": "myapp",
-  "version": "0.0.0",
-  "private": true,
+  "name": "mydb",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
   "scripts": {
-    "start": "node ./bin/www"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "chokidar": "^3.5.3",
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
-    "express": "~4.16.1",
-    "http-errors": "~1.6.3",
-    "morgan": "~1.9.1",
-    "nunjucks": "^3.2.3",
-    "pug": "^3.0.2"
+    "bootstrap": "^5.3.3",
+    "express": "^4.19.2"
   }
 }
