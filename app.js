@@ -1,46 +1,70 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-const nunjucks = require('nunjucks');
+const express = require('express');
+const app = express();
+const path = require('path');
+const fs = require('fs');
+const bodyParser = require('body-parser');
 
-var indexRouter = require('./routes/index');
-// var usersRouter = require('./routes/users');
+// Middleware to parse form data
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-var app = express();
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'njk');
-nunjucks.configure('views', { 
-  express: app,
-  watch: true,
-});
-
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+// Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-// app.use('/users', usersRouter);
+const correctPassword = '09871234'; // Set your password here
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+app.listen(8080, function() {
+    console.log('Server is listening on port 8080');
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+// Serve the form HTML file
+app.get('/req', function(req, res) {
+    res.sendFile(path.join(__dirname, 'write.html'));
 });
 
-module.exports = app;
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Serve the results password input HTML file
+app.get('/results', function(req, res) {
+    res.sendFile(path.join(__dirname, 'results.html'));
+});
+
+app.post('/submit', function(req, res) {
+    const { nickname, roomLink, purpose } = req.body;
+    const data = `방장 오픈프로필 닉네임: ${nickname}\n설치할 방의 링크: ${roomLink}\n설치할 목적: ${purpose}\n\n`;
+
+    // Save the data to a file
+    fs.appendFile('formData.txt', data, function(err) {
+        if (err) {
+            console.error('Error saving data:', err);
+            res.status(500).send('Internal Server Error');
+            return;
+        }
+        console.log('Data saved to file');
+        res.redirect('/results'); // Redirect to results page after submission
+    });
+});
+
+// Verify password and redirect accordingly
+app.post('/verify-password', function(req, res) {
+    const { password } = req.body;
+    if (password === correctPassword) {
+        res.redirect('/show-results');
+    } else {
+        res.redirect('/');
+    }
+});
+
+// Serve the saved data if password is correct
+app.get('/show-results', function(req, res) {
+    fs.readFile('formData.txt', 'utf8', function(err, data) {
+        if (err) {
+            console.error('Error reading data:', err);
+            res.send('No data available.');
+            return;
+        }
+        res.send(`<pre>${data}</pre>`);
+    });
+});
